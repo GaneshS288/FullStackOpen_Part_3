@@ -23,8 +23,9 @@ let phonebook = [
     },
 ];
 
-
 const app = new express();
+
+app.use(express.json());
 
 app.get("/api/persons", (req, res) => {
     res.json(phonebook);
@@ -37,6 +38,22 @@ app.get("/api/persons/:id", (req, res) => {
         return res.status(404).json({});
     }
     res.json(person);
+});
+
+app.post("/api/persons", (req, res) => {
+    const { name, number } = req.body;
+    if (!name || !number) {
+        const message =
+            "name or number field value is empty. Please send a request with both field values";
+        return res.status(400).json({ message });
+    } else {
+        const id = Math.ceil(Math.random() * 10000).toString();
+        const entry = { id, name, number };
+
+        phonebook.push({ id, name, number });
+
+        res.status(201).json(entry);
+    }
 });
 
 app.delete("/api/persons/:id", (req, res) => {
