@@ -42,9 +42,17 @@ app.get("/api/persons/:id", (req, res) => {
 
 app.post("/api/persons", (req, res) => {
     const { name, number } = req.body;
+    const nameExists = name
+        ? phonebook.some(
+              (entry) => name.trim().toLowerCase() === entry.name.toLowerCase()
+          )
+        : false;
     if (!name || !number) {
         const message =
             "name or number field value is empty. Please send a request with both field values";
+        return res.status(400).json({ message });
+    } else if (nameExists) {
+        const message = `The name ${name} already exists.`;
         return res.status(400).json({ message });
     } else {
         const id = Math.ceil(Math.random() * 10000).toString();
