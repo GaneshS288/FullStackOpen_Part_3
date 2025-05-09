@@ -1,5 +1,6 @@
 import express from "express";
 import morgan from "morgan";
+import cors from "cors";
 
 let phonebook = [
     {
@@ -29,10 +30,12 @@ morgan.token("postData", (req, res) => {
     else return "";
 });
 const app = new express();
+
 const logger = morgan(
     ":method :url :status :res[content-length] - :response-time ms :postData"
 );
 
+app.use(cors());
 app.use(express.json());
 app.use(logger);
 
