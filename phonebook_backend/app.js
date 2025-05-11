@@ -67,6 +67,31 @@ app.post("/api/persons", async (req, res, next) => {
     }
 });
 
+app.put("/api/persons/:id", async (req, res, next) => {
+    const { id } = req.params;
+    try {
+        const person = await Person.findById(id);
+        const { name, number } = req.body;
+
+        if (!person) {
+            return res.status(404).json({ error: "This entry doesn't exist" });
+        } else if (!name || !number) {
+            const error =
+                "name or number field value is empty. Please send a request with both field values";
+            return res.status(400).json({ error });
+        }
+
+        person.name = name;
+        person.number = number;
+
+        const updatedPerson = await person.save();
+
+        res.json(updatedPerson);
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.delete("/api/persons/:id", async (req, res, next) => {
     const { id } = req.params;
     try {
