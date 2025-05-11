@@ -1,29 +1,8 @@
+import "dotenv/config"
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-
-let phonebook = [
-    {
-        id: "1",
-        name: "Arto Hellas",
-        number: "040-123456",
-    },
-    {
-        id: "2",
-        name: "Ada Lovelace",
-        number: "39-44-5323523",
-    },
-    {
-        id: "3",
-        name: "Dan Abramov",
-        number: "12-43-234345",
-    },
-    {
-        id: "4",
-        name: "Mary Poppendieck",
-        number: "39-23-6423122",
-    },
-];
+import Person from "./models/Person.js";
 
 morgan.token("postData", (req, res) => {
     if (req.method === "POST") return JSON.stringify(req.body);
@@ -40,62 +19,89 @@ app.use(express.static("dist"));
 app.use(express.json());
 app.use(logger);
 
-app.get("/api/persons", (req, res) => {
-    res.json(phonebook);
-});
-
-app.get("/api/persons/:id", (req, res) => {
-    const { id } = req.params;
-    const person = phonebook.find((person) => person.id === id);
-    if (!person) {
-        return res.status(404).json({});
+app.get("/api/persons", async (req, res, next) => {
+    try {
+        let allPersons = await Person.find();
+        allPersons = allPersons.map((person) => person.toJSON());
+        res.json(allPersons);
+    } catch (error) {
+        console.log(error);
+        next(error);
     }
-    res.json(person);
 });
 
-app.post("/api/persons", (req, res) => {
+app.get("/api/persons/:id", async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+        const person = await Person.findById(id);
+        if (!person) {
+            return res.status(404).json({});
+        }
+        res.json(person.toJSON());
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+});
+
+app.post("/api/persons", async (req, res, next) => {
     const { name, number } = req.body;
-    const nameExists = name
-        ? phonebook.some(
-              (entry) => name.trim().toLowerCase() === entry.name.toLowerCase()
-          )
-        : false;
-    if (!name || !number) {
-        const message =
-            "name or number field value is empty. Please send a request with both field values";
-        return res.status(400).json({ message });
-    } else if (nameExists) {
-        const message = `The name ${name} already exists.`;
-        return res.status(400).json({ message });
-    } else {
-        const id = Math.ceil(Math.random() * 10000).toString();
-        const entry = { id, name, number };
 
-        phonebook.push({ id, name, number });
+    try {
+        const nameExists = await Person.findOne({ name: name });
 
-        res.status(201).json(entry);
+        if (!name || !number) {
+            const error =
+                "name or number field value is empty. Please send a request with both field values";
+            return res.status(400).json({ error });
+        } else if (nameExists) {
+            const error = `The name ${name} already exists.`;
+            return res.status(400).json({ error });
+        } else {
+            const entry = new Person({ name, number });
+            const savedEntry = await entry.save();
+
+            res.status(201).json(savedEntry.toJSON());
+        }
+    } catch (error) {
+        console.log(error);
+        next(error);
     }
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", async (req, res, next) => {
     const { id } = req.params;
-    phonebook = phonebook.filter((person) => person.id !== id);
+    try {
+        const deletedPerson = await Person.findByIdAndDelete(id);
 
-    res.status(204).end();
+        if (!deletedPerson) {
+            return res.status(404).json({ error: "No such entry" });
+        }
+        res.status(204).end();
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
 });
 
-app.get("/info", (req, res) => {
+app.get("/info", async (req, res, next) => {
     const date = new Date().toString();
-    const infoText = `Phonebook has info for ${phonebook.length} people`;
 
-    res.send(`<div>
-        <p>${infoText}</p>
-        <p>${date}</p>
-    </div>`);
+    try {
+        const allPersons = await Person.find({});
+
+        const infoText = `Phonebook has info for ${allPersons.length} people`;
+
+        res.send(`${infoText}, Date: ${date}`);
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
 });
 
 app.use("/*splat", (req, res) => {
     res.status(404).send("This is not a valid endpoint");
 });
 
-app.listen(3001, () => console.log("the server is running at port 3001"));
+app.listen(process.env.PORT, () => console.log(`the server is running at port ${process.env.PORT}`));
