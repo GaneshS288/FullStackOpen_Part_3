@@ -1,4 +1,4 @@
-import "dotenv/config"
+import "dotenv/config";
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
@@ -25,7 +25,6 @@ app.get("/api/persons", async (req, res, next) => {
         allPersons = allPersons.map((person) => person.toJSON());
         res.json(allPersons);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -40,7 +39,6 @@ app.get("/api/persons/:id", async (req, res, next) => {
         }
         res.json(person.toJSON());
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -65,7 +63,6 @@ app.post("/api/persons", async (req, res, next) => {
             res.status(201).json(savedEntry.toJSON());
         }
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -80,7 +77,6 @@ app.delete("/api/persons/:id", async (req, res, next) => {
         }
         res.status(204).end();
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -95,7 +91,6 @@ app.get("/info", async (req, res, next) => {
 
         res.send(`${infoText}, Date: ${date}`);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 });
@@ -104,4 +99,16 @@ app.use("/*splat", (req, res) => {
     res.status(404).send("This is not a valid endpoint");
 });
 
-app.listen(process.env.PORT, () => console.log(`the server is running at port ${process.env.PORT}`));
+app.use((err, req, res, next) => {
+    console.error(err.message);
+
+    if (err.name === "CastError") {
+        return response.status(400).json({ error: "malformatted id" });
+    }
+
+    next(err);
+});
+
+app.listen(process.env.PORT, () =>
+    console.log(`the server is running at port ${process.env.PORT}`)
+);
