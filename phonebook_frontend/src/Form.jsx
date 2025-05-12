@@ -17,7 +17,6 @@ function Form({
         <input
           value={newPhoneNumber}
           type="tel"
-          maxLength={10}
           onChange={(e) => setNewPhoneNumber(e.target.value)}
         />
       </div>

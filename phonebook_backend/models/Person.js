@@ -11,7 +11,24 @@ try {
     console.log("error connecting to mongodb", error);
 }
 
-const personSchema = new mongoose.Schema({ name: String, number: String });
+const personSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        minLength: [3, "name must be at least 3 characters long"],
+        trim: true,
+    },
+    number: {
+        type: String,
+        minLength: [8, "phone number must be at least 8 number long"],
+        validate: {
+            validator: function (v) {
+                return /^\d{2,3}-\d+$/.test(v);
+            },
+            message:
+                "Invalid phone number format. the format must be like this 91-23864843",
+        },
+    },
+});
 
 personSchema.set("toJSON", {
     virtuals: true,
@@ -25,4 +42,3 @@ personSchema.set("toJSON", {
 const Person = mongoose.model("person", personSchema);
 
 export default Person;
-
