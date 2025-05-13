@@ -13,4 +13,11 @@ export default defineConfig([
         languageOptions: { globals: globals.node },
     },
     globalIgnores(["dist/**"], "dist directory is ignored"),
+    {
+      rules: {
+        eqeqeq: "error",
+        "no-trailing-spaces": "error",
+        "object-curly-spacing": ["error", "always"],
+      }
+    }
 ]);
