@@ -4,7 +4,7 @@ import morgan from "morgan";
 import cors from "cors";
 import Person from "./models/Person.js";
 
-morgan.token("postData", (req, res) => {
+morgan.token("postData", (req) => {
     if (req.method === "POST") return JSON.stringify(req.body);
     else return "";
 });
@@ -128,7 +128,7 @@ app.use((err, req, res, next) => {
     console.error(err.message);
 
     if (err.name === "CastError") {
-        return response.status(400).json({ error: "malformatted id" });
+        return res.status(400).json({ error: "malformatted id" });
     } else if (err.name === "ValidationError") {
         return res.status(400).json({ error: err.message });
     }
